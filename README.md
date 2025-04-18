@@ -1,54 +1,70 @@
-# React + TypeScript + Vite
+# Skyjo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Une implémentation web du jeu de cartes Skyjo en React et TypeScript.
 
-Currently, two official plugins are available:
+## Description
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Skyjo est un jeu de cartes où le but est d'obtenir le moins de points possible. Les joueurs doivent gérer leurs cartes et décider stratégiquement quand les révéler pour minimiser leur score.
 
-## Expanding the ESLint configuration
+## Fonctionnalités
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- 🎮 2 à 4 joueurs
+- 🃏 Grille de 12 cartes (3x4) par joueur
+- 🎲 Cartes de -2 à 12 avec différentes occurrences
+- 🔄 Actions possibles à chaque tour :
+  - Prendre une carte de la défausse et l'échanger avec une carte de son jeu
+  - Piocher une carte et l'échanger avec une carte de son jeu
+  - Piocher une carte, la défausser et retourner une carte face cachée
+- ✨ Possibilité de retirer les colonnes de 3 cartes identiques
+- 🏁 La manche se termine quand un joueur révèle toutes ses cartes
+- 💯 Le score est doublé pour le joueur qui termine s'il n'a pas le plus petit score
+- 🏆 Le jeu continue jusqu'à ce qu'un joueur atteigne 100 points
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Technologies utilisées
+
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
+
+## Installation
+
+1. Cloner le dépôt :
+```bash
+git clone https://github.com/theov311/skyjo.git
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+2. Installer les dépendances :
+```bash
+cd skyjo
+npm install
 ```
+
+3. Lancer le serveur de développement :
+```bash
+npm run dev
+```
+
+## Développement
+
+Le projet est structuré de la manière suivante :
+
+- `src/components/` : Contient tous les composants React
+  - `Game.tsx` : Logique principale du jeu
+  - `PlayerBoard.tsx` : Plateau de jeu d'un joueur
+  - `Card.tsx` : Composant carte individuel
+  - `Welcome.tsx` : Écran d'accueil
+- `src/types/` : Types TypeScript utilisés dans l'application
+
+## Règles du jeu
+
+1. Chaque joueur commence avec 12 cartes face cachée et en révèle 2 au hasard
+2. À son tour, un joueur peut :
+   - Prendre la carte visible de la défausse et l'échanger avec une de ses cartes
+   - Piocher une carte et :
+     - soit l'échanger avec une de ses cartes
+     - soit la défausser et retourner une de ses cartes cachées
+3. Si un joueur aligne 3 cartes identiques en colonne, elles sont retirées du jeu
+4. Quand un joueur révèle toutes ses cartes, les autres joueurs ont un dernier tour
+5. Les points sont calculés et le score est doublé pour le joueur qui a fini s'il n'a pas le plus petit score
+6. Le jeu continue jusqu'à ce qu'un joueur atteigne 100 points
