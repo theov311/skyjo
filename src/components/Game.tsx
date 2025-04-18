@@ -89,6 +89,7 @@ export const Game = ({ playerNames }: GameProps) => {
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
   const [canExchange, setCanExchange] = useState(false);
   const [mustRevealCard, setMustRevealCard] = useState(false);
+  const [hasDrawnThisTurn, setHasDrawnThisTurn] = useState(false);
 
   const checkIdenticalColumns = (playerIndex: number) => {
     const player = gameState.players[playerIndex];
@@ -254,7 +255,7 @@ export const Game = ({ playerNames }: GameProps) => {
   };
 
   const drawCard = (fromDiscard: boolean = false) => {
-    if (drawnCard || gameState.currentPlayerIndex === -1) return;
+    if (drawnCard || gameState.currentPlayerIndex === -1 || hasDrawnThisTurn) return;
 
     const newGameState = { ...gameState };
     let card;
@@ -263,7 +264,7 @@ export const Game = ({ playerNames }: GameProps) => {
       if (newGameState.discardPile.length > 0) {
         card = newGameState.discardPile.pop();
         setCanExchange(true);
-        setMustRevealCard(false); // Pas besoin de révéler une carte quand on prend de la défausse
+        setMustRevealCard(false);
       }
     } else {
       card = newGameState.deck.pop();
@@ -274,8 +275,14 @@ export const Game = ({ playerNames }: GameProps) => {
     if (card) {
       card.isRevealed = true;
       setDrawnCard(card);
+      setHasDrawnThisTurn(true);
       setGameState(newGameState);
     }
+  };
+
+  const nextTurn = (newGameState: GameState) => {
+    newGameState.currentPlayerIndex = (newGameState.currentPlayerIndex + 1) % newGameState.players.length;
+    setHasDrawnThisTurn(false);
   };
 
   const handleCardClick = (playerIndex: number, rowIndex: number, colIndex: number) => {
@@ -311,8 +318,7 @@ export const Game = ({ playerNames }: GameProps) => {
         newGameState.isLastRound = true;
         newGameState.lastRoundInitiator = playerIndex;
         newGameState.players[playerIndex].hasFinishedRound = true;
-        // Passer au joueur suivant pour son dernier tour
-        newGameState.currentPlayerIndex = (playerIndex + 1) % newGameState.players.length;
+        nextTurn(newGameState);
       } else if (gameState.isLastRound) {
         // Si on est déjà dans le dernier tour, marquer que ce joueur a fini
         newGameState.players[playerIndex].hasFinishedRound = true;
@@ -332,9 +338,9 @@ export const Game = ({ playerNames }: GameProps) => {
           nextPlayer = (nextPlayer + 1) % newGameState.players.length;
         }
         newGameState.currentPlayerIndex = nextPlayer;
+        setHasDrawnThisTurn(false);
       } else {
-        // Tour normal, passer au joueur suivant
-        newGameState.currentPlayerIndex = (playerIndex + 1) % newGameState.players.length;
+        nextTurn(newGameState);
       }
       
       setGameState(newGameState);
@@ -359,8 +365,7 @@ export const Game = ({ playerNames }: GameProps) => {
           newGameState.isLastRound = true;
           newGameState.lastRoundInitiator = playerIndex;
           newGameState.players[playerIndex].hasFinishedRound = true;
-          // Passer au joueur suivant pour son dernier tour
-          newGameState.currentPlayerIndex = (playerIndex + 1) % newGameState.players.length;
+          nextTurn(newGameState);
         } else if (gameState.isLastRound) {
           // Si on est dans le dernier tour, marquer que ce joueur a fini
           newGameState.players[playerIndex].hasFinishedRound = true;
@@ -380,9 +385,9 @@ export const Game = ({ playerNames }: GameProps) => {
             nextPlayer = (nextPlayer + 1) % newGameState.players.length;
           }
           newGameState.currentPlayerIndex = nextPlayer;
+          setHasDrawnThisTurn(false);
         } else {
-          // Tour normal, passer au joueur suivant
-          newGameState.currentPlayerIndex = (playerIndex + 1) % newGameState.players.length;
+          nextTurn(newGameState);
         }
         
         setGameState(newGameState);
