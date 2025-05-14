@@ -14,7 +14,6 @@ const getBackgroundColor = (value: number) => {
 };
 
 const createDeck = (): Card[] => {
-  const deck: Card[] = [];
   const values = [
     ...Array(5).fill(-2),
     ...Array(10).fill(-1),
@@ -97,11 +96,10 @@ export const Game = ({ playerNames }: GameProps) => {
     let columnsRemoved = false;
 
     // Vérifier chaque colonne
-    for (let col = 0; col < 4; col++) {
-      const column = player.cards.map(row => row[col]);
-      if (column.every(card => card.isRevealed && !card.isRemoved)) {
+    for (let col = 0; col < 4; col++) {      const column = player.cards.map((row) => row[col]);
+      if (column.every((card) => card.isRevealed && !card.isRemoved)) {
         const firstValue = column[0].value;
-        if (column.every(card => card.value === firstValue)) {
+        if (column.every((card) => card.value === firstValue)) {
           // Retirer les cartes de la colonne
           for (let row = 0; row < 3; row++) {
             newGameState.players[playerIndex].cards[row][col].isRemoved = true;
@@ -253,9 +251,15 @@ export const Game = ({ playerNames }: GameProps) => {
 
     setGameState(newGameState);
   };
-
   const drawCard = (fromDiscard: boolean = false) => {
-    if (drawnCard || gameState.currentPlayerIndex === -1 || hasDrawnThisTurn) return;
+    // Ne pas permettre de piocher si une carte est déjà piochée ou si un joueur a déjà pioché ce tour
+    if (drawnCard || hasDrawnThisTurn) return;
+    
+    // S'assurer que l'indice du joueur courant est valide
+    if (gameState.currentPlayerIndex < 0 || gameState.currentPlayerIndex >= gameState.players.length) {
+      console.error("Indice de joueur invalide:", gameState.currentPlayerIndex);
+      return;
+    }
 
     const newGameState = { ...gameState };
     let card;
@@ -541,19 +545,55 @@ export const Game = ({ playerNames }: GameProps) => {
                       </div>
                     </div>
                   ))}
-              </div>
-              {!gameState.isGameOver && (
-                <button
-                  onClick={() => setGameState(prevState => ({
-                    ...initializeGame(),
-                    players: prevState.players.map(p => ({
-                      ...p,
-                      cards: [...Array(3)].map(() => Array(4).fill(null).map(() => ({ value: 0, isRevealed: false }))),
-                      currentRoundScore: 0,
-                      hasFinishedRound: false
-                    })),
-                    roundNumber: prevState.roundNumber + 1
-                  }))}
+              </div>              {!gameState.isGameOver && (
+                <button                  onClick={() => {
+                    // Créer un nouveau jeu avec un deck mélangé
+                    const newDeck = shuffleDeck(createDeck());
+                    
+                    // Créer de nouvelles cartes pour chaque joueur
+                    const updatedPlayers = gameState.players.map((player, id) => {
+                      const cards: Card[][] = Array(3).fill(null).map(() =>
+                        Array(4).fill(null).map(() => newDeck.pop()!)
+                      );
+                      
+                      // Révéler 2 cartes au hasard pour chaque joueur
+                      for (let i = 0; i < 2; i++) {
+                        const row = Math.floor(Math.random() * 3);
+                        const col = Math.floor(Math.random() * 4);
+                        if (!cards[row][col].isRevealed) {
+                          cards[row][col].isRevealed = true;
+                        } else {
+                          i--;
+                        }
+                      }
+                      
+                      return {
+                        ...player,
+                        cards,
+                        currentRoundScore: 0,
+                        hasFinishedRound: false
+                      };
+                    });
+                    
+                    // Mettre à jour le jeu avec les joueurs mis à jour et le numéro de manche
+                    setGameState({
+                      players: updatedPlayers,
+                      currentPlayerIndex: 0, // S'assurer que c'est le premier joueur qui commence
+                      deck: newDeck,
+                      discardPile: [{ ...newDeck.pop()!, isRevealed: true }], // Ajouter une carte à la défausse
+                      isLastRound: false,
+                      lastRoundInitiator: -1,
+                      isRoundOver: false,
+                      isGameOver: false,
+                      roundNumber: gameState.roundNumber + 1
+                    });
+                    
+                    // Réinitialiser les états pour la nouvelle manche
+                    setDrawnCard(null);
+                    setCanExchange(false);
+                    setMustRevealCard(false);
+                    setHasDrawnThisTurn(false);
+                  }}
                   className="mt-6 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                 >
                   Commencer la prochaine manche
